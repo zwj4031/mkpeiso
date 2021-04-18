@@ -1,6 +1,53 @@
-:::: -boot-load-size 4ä¸ºgrldrä¹‹ç±»ï¼Œ4kä»¥ä¸Šçš„æ–‡ä»¶å¡«8 æˆ–å–æ¶ˆå‚æ•°
+@pushd "%~dp0" >nul 2>&1
+
+@echo off & pushd "%~dp0"
+mode con cols=66 lines=26
+:menu
+if not "%1" == "" set wim=%1&&goto mkiso
+echo Çå£¡Õæ£¡
+echo Ë«ÆôISO[BIOS/EFI64]Î»±£Ö¤×ªÈ¦È¦ÖÆ×÷Æ÷
+echo Ö§³ÖÕ³Ìûwim»ò½«wimÎÄ¼şÍÏµ½batÎÄ¼şÉÏ
+echo ÇëÑ¡Ôñµ±Ç°Ä¿Â¼ÏÂµÄwimÀ´ÖÆ×÷³Éiso
+echo __________________________________
+setlocal enabledelayedexpansion
+set n=0
+for /f %%i in ('dir /b %~dp0*.wim') do (
+set /a n+=1
+set pc!n!=%%i
+@echo !n!.%%i  
+)
+echo __________________________________
+echo [Ê·ÉÏ×îÎ°´óÍø¹ÜÏ¹¸ã¹¤×÷ÊÒ³öÆ·]
+set /p sel=ÇëÑ¡ÔñÊı×Ö:
+set wim=!pc%sel%!
+
+
+:mkiso
+::×¢Èë×ªÈ¦È¦ÎÄ¼ş
+echo ÕıÔÚ×¢Èë×ªÈ¦È¦ÎÄ¼ş¡­¡­
+bin\wimlib update %wim% --command="add 'build\boot\resources\bootres.dll' '\Windows\Boot\Resources\bootres.dll'"
+for /f %%i in ('dir /b build\boot\fonts\*.*') do (
+echo ×¢Èë%%i µ½boot.wim!
+bin\wimlib update %wim% --command="add 'build\boot\fonts\%%i' '\Windows\Boot\Fonts\%%i'"
+)
+@echo ×ªÈ¦È¦ÎÄ¼ş×¢ÈëÍê³É£¡
+echo ¸´ÖÆ%wim%µ½bÓÍÅ¶µÂÄ¿Â¼....
+copy /y "%wim%" %~dp0build\sources\PE64.wim
 cd /d %~dp0
 echo . build\ventoy.dat
-%~dp0bin\mkisofs.exe -udf -d -v -V ChobitPE -no-emul-boot -boot-load-size 4 -b boot/grldr -eltorito-platform efi -b efi/microsoft/boot/efisys_noprompt.bin -o chobitpe.iso -R -U build
-echo ok.
-exit
+%~dp0bin\mkisofs.exe -udf -d -v -V MiniPE -no-emul-boot -boot-load-size 4 -b boot/grldr -eltorito-platform efi -b efi/microsoft/boot/efisys_noprompt.bin -o MiniPE.iso -R -U build
+cls
+echo »á×ªÈ¦È¦µÄISOÎÄ¼ş´ò°üÍê³É£¬±£´æÔÚ£º%~dp0WinPE.iso
+echo .... »á×ªÈ¦È¦Å¶~ ....
+echo .... »á×ªÈ¦È¦Å¶~ ....
+@echo ÇåÀíwimÎÄ¼ş...
+del /s /Q %~dp0build\sources\PE64.wim>nul
+echo __________________________________
+echo r [ÔÙÀ´Ò»¸ö]
+echo q [ÍË³ö]
+echo [Ê·ÉÏ×îÎ°´óÍø¹ÜÏ¹¸ã¹¤×÷ÊÒ³öÆ·]
+set /p user_input=ÇëÊäÈë£º
+
+if %user_input% equ r cls&&goto menu
+if %user_input% equ q exit
+pause
